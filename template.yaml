@@ -1,0 +1,129 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  sam-python-crud-sample
+
+  SAM Template for sam-python-crud-sample
+
+Globals:
+  Function:
+    Timeout: 60
+
+Parameters:
+  Table:
+    Type: String
+    Default: order
+
+Resources:
+  CreateAlbumFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/create_album/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Environment:
+        Variables:
+          TABLE: !Ref Table
+
+      Events:
+        CreateAlbums:
+          Type: Api
+          Properties:
+            Path: /allbum/create_album/
+            Method: post
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref order
+  GetAlbumFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/get_album/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Environment:
+        Variables:
+          TABLE: !Ref Table
+
+      Events:
+        CreateAlbums:
+          Type: Api
+          Properties:
+            Path: /album/get_album/{DateReleased}/
+            Method: GET
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref order
+  ListAlbumsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/list_albums/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Environment:
+        Variables:
+          TABLE: !Ref Table
+
+      Events:
+        CreateAlbums:
+          Type: Api
+          Properties:
+            Path: /album/
+            Method: GET
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref Table
+  UpdateAlbumFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/update_album/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Environment:
+        Variables:
+          TABLE: !Ref Table
+
+      Events:
+        CreateAlbum:
+          Type: Api
+          Properties:
+            Path: /album/update_album/{AlbumId}/
+            Method: put
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref Table
+  DeleteAlbumFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/delete_album/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Environment:
+        Variables:
+          TABLE: !Ref Table
+
+      Events:
+        CreateAlbum:
+          Type: Api
+          Properties:
+            Path: /album/delete_album/{AlbumId}/
+            Method: delete
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref Table
+  order:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "AlbumId"
+          AttributeType: "S"
+        - AttributeName: "DateReleased"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "AlbumId"
+          KeyType: "HASH"
+        - AttributeName: "DateReleased"
+          KeyType: "RANGE"
+      ProvisionedThroughput:
+        ReadCapacityUnits: "1"
+        WriteCapacityUnits: "1"
+      TableName: "order"
